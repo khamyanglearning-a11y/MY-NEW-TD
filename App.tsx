@@ -540,7 +540,7 @@ const App: React.FC = () => {
 
       <main className="max-w-5xl mx-auto px-6 mt-12">
         <AnimatePresence mode="wait">
-          {activeTab === 'dashboard' && currentUser && (
+          {activeTab === 'dashboard' && currentUser && (currentUser.role === 'admin' || currentUser.role === 'owner') && (
             <motion.div 
               key="dashboard"
               initial={{ opacity: 0, y: 10 }}
@@ -640,85 +640,129 @@ const App: React.FC = () => {
           )}
 
           {activeTab === 'learning' && (
-            <motion.div key="learning" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-              <div className="text-center space-y-4 mb-12">
-                <h1 className="text-5xl font-serif font-bold tracking-tight">Academy</h1>
-                <p className="text-ink/60 max-w-lg mx-auto">Master the language through structured lessons and interactive modules.</p>
-              </div>
-              <LearningCourse 
-                user={currentUser}
-                onLessonComplete={handleLessonComplete} 
-                completedLessonIds={studentProfile?.progress.map(p => p.lessonId) || []} 
-                onAddModule={() => setIsModuleModalOpen(true)}
-                onEditModule={(m) => { setEditingModule(m); setIsModuleModalOpen(true); }}
-                onDeleteModule={async (id) => { 
-                  await db.modules.delete(id); 
-                  loadCoreData();
-                }}
-                onAddLesson={(mid) => { setActiveModuleId(mid); setIsLessonModalOpen(true); }}
-                onEditLesson={(l) => { setEditingLesson(l); setActiveModuleId(l.moduleId); setIsLessonModalOpen(true); }}
-                onDeleteLesson={async (id) => { 
-                  await db.lessons.delete(id); 
-                  loadCoreData();
-                }}
-              />
-            </motion.div>
+            currentUser ? (
+              <motion.div key="learning" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                <div className="text-center space-y-4 mb-12">
+                  <h1 className="text-5xl font-serif font-bold tracking-tight">Academy</h1>
+                  <p className="text-ink/60 max-w-lg mx-auto">Master the language through structured lessons and interactive modules.</p>
+                </div>
+                <LearningCourse 
+                  user={currentUser}
+                  onLessonComplete={handleLessonComplete} 
+                  completedLessonIds={studentProfile?.progress.map(p => p.lessonId) || []} 
+                  onAddModule={() => setIsModuleModalOpen(true)}
+                  onEditModule={(m) => { setEditingModule(m); setIsModuleModalOpen(true); }}
+                  onDeleteModule={async (id) => { 
+                    await db.modules.delete(id); 
+                    loadCoreData();
+                  }}
+                  onAddLesson={(mid) => { setActiveModuleId(mid); setIsLessonModalOpen(true); }}
+                  onEditLesson={(l) => { setEditingLesson(l); setActiveModuleId(l.moduleId); setIsLessonModalOpen(true); }}
+                  onDeleteLesson={async (id) => { 
+                    await db.lessons.delete(id); 
+                    loadCoreData();
+                  }}
+                />
+              </motion.div>
+            ) : (
+              <motion.div key="learning-login" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <SignInPage 
+                  onLogin={handleLoginSuccess} 
+                  onClose={() => setActiveTab('dictionary')} 
+                  intent="public" 
+                  onIntentChange={setLoginIntent}
+                  devConfig={devConfig}
+                />
+              </motion.div>
+            )
           )}
 
           {activeTab === 'blog' && (
-            <motion.div key="blog" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-              <div className="text-center space-y-4 mb-12">
-                <h1 className="text-5xl font-serif font-bold tracking-tight">Media Hub</h1>
-                <p className="text-ink/60 max-w-lg mx-auto">Discover books, songs, videos, and stories from our community.</p>
-              </div>
-              <BlogSection 
-                books={books}
-                gallery={gallery}
-                songs={songs}
-                videos={videos}
-                user={currentUser}
-                onAddBook={() => setIsBookModalOpen(true)}
-                onDeleteBook={async (id) => { 
-                  await db.books.delete(id); 
-                  setBooks(prev => prev.filter(b => b.id !== id)); 
-                }}
-                onAddPhoto={() => setIsGalleryModalOpen(true)}
-                onDeletePhoto={async (id) => { 
-                  await db.gallery.delete(id); 
-                  setGallery(prev => prev.filter(i => i.id !== id)); 
-                }}
-                onAddSong={() => setIsSongModalOpen(true)}
-                onDeleteSong={async (id) => { 
-                  await db.songs.delete(id); 
-                  setSongs(prev => prev.filter(s => s.id !== id)); 
-                }}
-                onAddVideo={() => setIsVideoModalOpen(true)}
-                onDeleteVideo={async (id) => { 
-                  await db.videos.delete(id); 
-                  setVideos(prev => prev.filter(v => v.id !== id)); 
-                }}
-                onAddArticle={() => setIsArticleModalOpen(true)}
-                onEditArticle={(a) => { setEditingArticle(a); setIsArticleModalOpen(true); }}
-                onDeleteArticle={async (id) => { 
-                  await db.articles.delete(id); 
-                  loadCoreData();
-                }}
-              />
-            </motion.div>
+            currentUser ? (
+              <motion.div key="blog" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                <div className="text-center space-y-4 mb-12">
+                  <h1 className="text-5xl font-serif font-bold tracking-tight">Media Hub</h1>
+                  <p className="text-ink/60 max-w-lg mx-auto">Discover books, songs, videos, and stories from our community.</p>
+                </div>
+                <BlogSection 
+                  books={books}
+                  gallery={gallery}
+                  songs={songs}
+                  videos={videos}
+                  user={currentUser}
+                  onAddBook={() => setIsBookModalOpen(true)}
+                  onDeleteBook={async (id) => { 
+                    await db.books.delete(id); 
+                    setBooks(prev => prev.filter(b => b.id !== id)); 
+                  }}
+                  onAddPhoto={() => setIsGalleryModalOpen(true)}
+                  onDeletePhoto={async (id) => { 
+                    await db.gallery.delete(id); 
+                    setGallery(prev => prev.filter(i => i.id !== id)); 
+                  }}
+                  onAddSong={() => setIsSongModalOpen(true)}
+                  onDeleteSong={async (id) => { 
+                    await db.songs.delete(id); 
+                    setSongs(prev => prev.filter(s => s.id !== id)); 
+                  }}
+                  onAddVideo={() => setIsVideoModalOpen(true)}
+                  onDeleteVideo={async (id) => { 
+                    await db.videos.delete(id); 
+                    setVideos(prev => prev.filter(v => v.id !== id)); 
+                  }}
+                  onAddArticle={() => setIsArticleModalOpen(true)}
+                  onEditArticle={(a) => { setEditingArticle(a); setIsArticleModalOpen(true); }}
+                  onDeleteArticle={async (id) => { 
+                    await db.articles.delete(id); 
+                    loadCoreData();
+                  }}
+                />
+              </motion.div>
+            ) : (
+              <motion.div key="blog-login" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <SignInPage 
+                  onLogin={handleLoginSuccess} 
+                  onClose={() => setActiveTab('dictionary')} 
+                  intent="public" 
+                  onIntentChange={setLoginIntent}
+                  devConfig={devConfig}
+                />
+              </motion.div>
+            )
           )}
 
-          {activeTab === 'profile' && studentProfile && (
-            <motion.div key="profile" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-              <StudentProfileView 
-                profile={studentProfile} 
-                onUpdateProfile={async (p) => { 
-                  await db.students.upsertProfile(p); 
-                  setStudentProfile(p); 
-                }} 
-                words={words} 
-                onDownloadOffline={handleDownloadOffline}
-              />
-            </motion.div>
+          {activeTab === 'profile' && (
+            currentUser ? (
+              studentProfile ? (
+                <motion.div key="profile" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                  <StudentProfileView 
+                    profile={studentProfile} 
+                    onUpdateProfile={async (p) => { 
+                      await db.students.upsertProfile(p); 
+                      setStudentProfile(p); 
+                    }} 
+                    words={words} 
+                    onDownloadOffline={handleDownloadOffline}
+                  />
+                </motion.div>
+              ) : (
+                <motion.div key="profile-restricted" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
+                  <h2 className="text-2xl font-serif font-bold mb-4">Member Account Required</h2>
+                  <p className="text-ink/60 mb-8">This section is for community members only. Admin and developers use the Portal.</p>
+                  <button onClick={() => setActiveTab('dictionary')} className="heritage-button px-8 py-3">Back to Dictionary</button>
+                </motion.div>
+              )
+            ) : (
+              <motion.div key="profile-login" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                <SignInPage 
+                  onLogin={handleLoginSuccess} 
+                  onClose={() => setActiveTab('dictionary')} 
+                  intent="public" 
+                  onIntentChange={setLoginIntent}
+                  devConfig={devConfig}
+                />
+              </motion.div>
+            )
           )}
         </AnimatePresence>
       </main>
