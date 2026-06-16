@@ -37,12 +37,12 @@ const BottomNav: React.FC<BottomNavProps> = ({ user, activeTab, onTabChange }) =
 
   const visibleTabs = allTabs.filter(t => {
     if (user?.role === 'owner') return t.id !== 'profile';
-    if (!user) return ['dictionary', 'learning', 'blog'].includes(t.id);
+    if (!user) return t.id === 'dictionary';
     
     if (user.role === 'admin') {
       if (t.id === 'dashboard') return true;
       if (t.id === 'profile') return false;
-      return ['dictionary', 'learning', 'blog'].includes(t.id);
+      return true;
     }
 
     if (user.role === 'student') {
@@ -50,7 +50,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ user, activeTab, onTabChange }) =
       return true;
     }
 
-    return ['dictionary', 'learning', 'blog'].includes(t.id);
+    return t.id === 'dictionary';
   });
 
   // Display all visible tabs (should be 5 or fewer now)

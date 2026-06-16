@@ -65,12 +65,12 @@ const Navbar: React.FC<NavbarProps> = ({
 
   const visibleTabs = allTabs.filter(t => {
     if (user?.role === 'owner') return t.id !== 'profile';
-    if (!user) return t.id !== 'dashboard' && t.id !== 'profile';
+    if (!user) return t.id === 'dictionary';
     
     if (user.role === 'admin') {
       if (t.id === 'dashboard') return true;
       if (t.id === 'profile') return false;
-      return ['dictionary', 'learning', 'blog'].includes(t.id);
+      return true;
     }
 
     if (user.role === 'student') {

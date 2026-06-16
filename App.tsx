@@ -31,6 +31,16 @@ import { db, DEMO_MODE } from './services/database';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft } from 'lucide-react';
 
+type AppTab = 'dictionary' | 'library' | 'gallery' | 'songs' | 'videos' | 'dashboard' | 'learning' | 'blog' | 'profile';
+
+const canAccessTab = (tab: AppTab, user: User | null) => {
+  if (tab === 'dictionary') return true;
+  if (!user) return false;
+  if (tab === 'dashboard') return user.role === 'owner' || user.role === 'admin';
+  if (tab === 'profile') return user.role === 'student';
+  return true;
+};
+
 const App: React.FC = () => {
   const [words, setWords] = useState<Word[]>([]);
   const [books, setBooks] = useState<Book[]>([]);
@@ -50,7 +60,7 @@ const App: React.FC = () => {
     }
   }, []);
 
-  const [activeTab, setActiveTab] = useState<'dictionary' | 'library' | 'gallery' | 'songs' | 'videos' | 'dashboard' | 'learning' | 'blog' | 'profile'>('dictionary');
+  const [activeTab, setActiveTab] = useState<AppTab>('dictionary');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [studentProfile, setStudentProfile] = useState<StudentProfile | null>(null);
   
@@ -172,6 +182,35 @@ const App: React.FC = () => {
     setIsLogoutModalOpen(false);
     setActiveTab('dictionary');
   };
+
+  const openMemberLogin = () => {
+    setLoginIntent('public');
+    setIsLoggingIn(true);
+  };
+
+  const handleTabChange = (tab: AppTab) => {
+    if (!canAccessTab(tab, currentUser)) {
+      openMemberLogin();
+      return;
+    }
+    setActiveTab(tab);
+  };
+
+  const handleProtectedLandingTab = (tab: AppTab) => {
+    if (!canAccessTab(tab, currentUser)) {
+      setShowLanding(false);
+      openMemberLogin();
+      return;
+    }
+    setShowLanding(false);
+    setActiveTab(tab);
+  };
+
+  useEffect(() => {
+    if (!canAccessTab(activeTab, currentUser)) {
+      setActiveTab('dictionary');
+    }
+  }, [activeTab, currentUser]);
 
   const handleLoginSuccess = async (p: string, pass: string, intent: 'staff' | 'developer' | 'public', name?: string, isRegistering?: boolean) => {
     const cleanPhone = p.replace(/\D/g, '');
@@ -502,8 +541,8 @@ const App: React.FC = () => {
       <LandingPage 
         onExplore={() => setShowLanding(false)} 
         onDictionary={() => { setShowLanding(false); setActiveTab('dictionary'); }} 
-        onLearning={() => { setShowLanding(false); setActiveTab('learning'); }}
-        onBlog={() => { setShowLanding(false); setActiveTab('blog'); }}
+        onLearning={() => handleProtectedLandingTab('learning')}
+        onBlog={() => handleProtectedLandingTab('blog')}
         onEditAbout={() => setIsAboutModalOpen(true)}
         staffRole={currentUser?.role}
       />
@@ -515,7 +554,7 @@ const App: React.FC = () => {
       <Navbar 
         user={currentUser} 
         activeTab={activeTab} 
-        onTabChange={setActiveTab} 
+        onTabChange={handleTabChange} 
         onLoginClick={(i) => { setLoginIntent(i); setIsLoggingIn(true); }} 
         onLogout={() => setIsLogoutModalOpen(true)} 
         onSyncClick={() => {}} 
@@ -797,7 +836,7 @@ const App: React.FC = () => {
       {isMessageModalOpen && currentUser && <MessageModal user={currentUser} onClose={() => setIsMessageModalOpen(false)} />}
       
       {!showLanding && (
-        <BottomNav user={currentUser} activeTab={activeTab} onTabChange={setActiveTab} />
+        <BottomNav user={currentUser} activeTab={activeTab} onTabChange={handleTabChange} />
       )}
     </div>
   );
